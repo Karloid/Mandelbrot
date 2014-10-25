@@ -1,5 +1,6 @@
 package com.krld.mandelbrot;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 
@@ -37,7 +38,7 @@ public class MyInputCalcer implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        core.zoom(1280 - screenX, 720 - screenY, button == Input.Buttons.LEFT);
+        core.zoom(screenX, Gdx.graphics.getHeight() - screenY, button == Input.Buttons.LEFT);
         core.updateTexture();
         return false;
     }

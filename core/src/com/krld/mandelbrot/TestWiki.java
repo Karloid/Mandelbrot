@@ -26,22 +26,6 @@ public class TestWiki {
                 } else {
                     System.out.print(" ");
                 }
-                /*
-                switch (iterations % 4)
-                {
-                    case 0:
-                        System.out.print(".");
-                        break;
-                    case 1:
-                        System.out.print("o");
-                        break;
-                    case 2:
-                        System.out.print("0");
-                        break;
-                    case 3:
-                        System.out.print("@");
-                        break;
-                }*/
             }
             System.out.println("");
         }

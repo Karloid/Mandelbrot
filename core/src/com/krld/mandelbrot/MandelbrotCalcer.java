@@ -3,6 +3,10 @@ package com.krld.mandelbrot;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Andrey on 7/8/2014.
  */
@@ -10,37 +14,27 @@ public class MandelbrotCalcer implements Calcer {
     public static final int MAX_ITER_INITIAL = 100;
     private static int maxIteration = MAX_ITER_INITIAL;
     private static final double MAX_RES = 4;
+    private int nThreads = 4;
+
+    private Pixmap mPixMap;
 
     @Override
     public void calcPixmap(Pixmap pixMap, double startX, double startY, double endX, double endY) {
-        pixMap.setColor(Color.WHITE);
-        pixMap.fill();
-        int xPix = pixMap.getWidth(), yPix = pixMap.getHeight();
-        for (double x = startX; x <= endX; x += (endX - startX) / pixMap.getWidth()) {
-            for (double y = startY; y <= endY; y += (endY - startY) / pixMap.getHeight()) {
-                int iter = 0;
-                double xTemp = x;
-                double yTemp = y;
-                double res = (x * x) + (y * y);
-                while (res < MAX_RES && iter < maxIteration) {
-                    double xTemp2 = (xTemp * xTemp) - (yTemp * yTemp) - x;
-                    yTemp = (2 * xTemp * yTemp) - y;
-                    xTemp = xTemp2;
-                    res = (xTemp * xTemp) + (yTemp * yTemp);
-                    iter++;
-                }
-                Color color;
-                if (res >= MAX_RES) {
-                    color = getColor(iter);
-                } else {
-                    color = Color.BLACK;
-                }
-                pixMap.setColor(color);
-                pixMap.drawPixel(xPix, yPix);
-                yPix--;
+        try {
+            mPixMap = pixMap;
+            ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+            int pixelWidth = pixMap.getWidth() / nThreads;
+            double realWidth = (endX - startX) / nThreads;
+            for (int i = 0; i < nThreads; i++) {
+                int xOffset = pixelWidth * i;
+                double startXpart = startX + realWidth * i;
+                double endXpart = startX + realWidth * (i + 1);
+                executor.execute(new CalcerRunnable(pixMap, startXpart, startY, endXpart, endY, xOffset, pixelWidth));
             }
-            yPix = pixMap.getHeight();
-            xPix--;
+            executor.shutdown();
+            executor.awaitTermination(90000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -59,14 +53,94 @@ public class MandelbrotCalcer implements Calcer {
         float iterFloat = iter;
         float k = 1f - iterFloat / maxIteration;
         float red = 1f * k;
-        float green =  1f * k;
-        float blue =  1 - red/1.1f;
+        float green = 1f * k;
+        float blue = 1 - red / 1.1f;
         color = new Color(red, green, blue, 1f);
-      /*  if (iter < 10) {
-            color = Color.BLUE;
-        } else {
-            color = Color.RED;
-        }*/
         return color;
+    }
+
+    private synchronized void drawPixels(int[][] pixArray, int xOffset) {
+        for (int x = xOffset; x < xOffset + pixArray.length; x++) {
+            for (int y = 0; y < pixArray[0].length; y++) {
+                Color color;
+                int iter = pixArray[x - xOffset][y];
+                if (iter != -1) {
+                    color = getColor(iter);
+                } else {
+                    color = Color.BLACK;
+                }
+                mPixMap.setColor(color);
+                mPixMap.drawPixel(x, y);
+            }
+        }
+    }
+
+    private class CalcerRunnable implements Runnable {
+        private final Pixmap mPixmap;
+        private final double mStartX;
+        private final double mStartY;
+        private final double mEndX;
+        private final double mEndY;
+
+        private int mWidth;
+        private int mXOffset;
+
+        public CalcerRunnable(Pixmap pixMap, double startX, double startY, double endX, double endY, int xOffset, int width) {
+            mPixmap = pixMap;
+            mStartX = startX;
+            mStartY = startY;
+            mEndX = endX;
+            mEndY = endY;
+
+            mWidth = width;
+            mXOffset = xOffset;
+        }
+
+        @Override
+        public void run() {
+            int[][] pixArray = new int[mWidth][mPixmap.getHeight()];
+            calcPixmap2(pixArray, mStartX, mStartY, mEndX, mEndY);
+            drawPixels(pixArray, mXOffset);
+        }
+
+        private void calcPixmap2(int[][] pixArray, double startX, double startY, double endX, double endY) {
+            int width = pixArray.length;
+            int height = pixArray[0].length;
+            int xPix = width - 1;
+            int yPix = height - 1;
+            double deltaX = (endX - startX) / width;
+            double deltaY = (endY - startY) / height;
+            for (double x = startX; x <= endX; x += deltaX) {
+                for (double y = startY; y <= endY; y += deltaY) {
+                    int res = someRealMathCalc(x, y);
+                    if (yPix < 0) break;
+                    pixArray[width - 1 - xPix][yPix] = res;
+                    yPix--;
+                }
+                yPix = height - 1;
+                xPix--;
+                if (xPix < 0) break;
+            }
+        }
+
+    }
+
+    private int someRealMathCalc(double x, double y) {
+        int iter = 0;
+        double xTemp = x;
+        double yTemp = y;
+        double res = (x * x) + (y * y);
+        while (res < MAX_RES && iter < maxIteration) {
+            double xTemp2 = (xTemp * xTemp) - (yTemp * yTemp) - x;
+            yTemp = (2 * xTemp * yTemp) - y;
+            xTemp = xTemp2;
+            res = (xTemp * xTemp) + (yTemp * yTemp);
+            iter++;
+        }
+        if (res >= MAX_RES) {
+            return iter;
+        } else {
+            return -1;
+        }
     }
 }

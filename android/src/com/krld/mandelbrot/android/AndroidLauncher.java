@@ -11,9 +11,8 @@ public class AndroidLauncher extends AndroidApplication {
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        Core listener1 = new Core();
-        listener1.setWidth(1280);
-        listener1.setHeight(720);
-        initialize(listener1, config);
+        Core core = new Core();
+        initialize(core, config);
 	}
+
 }

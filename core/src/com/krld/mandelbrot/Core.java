@@ -12,8 +12,10 @@ public class Core extends ApplicationAdapter {
     private static final double END_X = 3.2;
     SpriteBatch batch;
     private Pixmap pixMap;
-    private int width;
-    private int height;
+
+    private int mWidth;
+    private int mHeight;
+
     private Texture texture;
     private Calcer mandelbrot;
     private double startX;
@@ -25,6 +27,8 @@ public class Core extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
+        mWidth = Gdx.graphics.getWidth();
+        mHeight = Gdx.graphics.getHeight();
         initTexture();
 
         startX = START_X;
@@ -38,48 +42,47 @@ public class Core extends ApplicationAdapter {
     }
 
     void updateTexture() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-        mandelbrot.calcPixmap(pixMap, startX, startY, endX, endY);
-        texture = new Texture(pixMap, Pixmap.Format.RGBA8888, false);
+            }
+        });
+        thread.start();
+        for (int i = 6; i != 0; i--) {
+            double currentDivider = Math.pow(2, i);
+            int width = (int) (mWidth / currentDivider);
+            int height = (int) (mHeight / currentDivider);
+            Pixmap tmpPixMap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+            mandelbrot.calcPixmap(tmpPixMap, startX, startY, endX, endY);
+            texture = new Texture(tmpPixMap, Pixmap.Format.RGBA8888, false);
+            break;
+        }
     }
 
     private void initTexture() {
-        pixMap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+       /* pixMap = new Pixmap(mWidth, mHeight, Pixmap.Format.RGBA8888);
         pixMap.setColor(Color.WHITE);
         pixMap.fill();
         pixMap.setColor(Color.RED);
         pixMap.drawCircle(10, 20, 300);
-        texture = new Texture(pixMap, Pixmap.Format.RGBA8888, false);
+        texture = new Texture(pixMap, Pixmap.Format.RGBA8888, false);*/
 
     }
 
     @Override
     public void render() {
         batch.begin();
-        batch.draw(texture, 0, 0);
+        if (texture != null)
+            batch.draw(texture, 0, 0, mWidth, mHeight);
         batch.end();
     }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public int getHeight() {
-        return height;
-    }
 
     public void zoom(int x, int y, boolean in) {
         double realX, realY;
-        realX = startX + ((endX - startX) / width) * x;
-        realY = startY + ((endY - startY) / height) * y;
+        realX = startX + ((endX - startX) / mWidth) * x;
+        realY = startY + ((endY - startY) / mHeight) * y;
         System.out.println("realX : " + realX + "; realY: " + realY);
         System.out.println("x : " + x + "; y: " + y);
         double deltaX = endX - startX;
