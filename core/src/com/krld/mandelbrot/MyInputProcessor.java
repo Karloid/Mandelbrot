@@ -7,10 +7,10 @@ import com.badlogic.gdx.InputProcessor;
 /**
  * Created by Andrey on 7/8/2014.
  */
-public class MyInputCalcer implements InputProcessor {
+public class MyInputProcessor implements com.badlogic.gdx.InputProcessor {
     private final Core core;
 
-    public MyInputCalcer(Core core) {
+    public MyInputProcessor(Core core) {
         this.core = core;
     }
 

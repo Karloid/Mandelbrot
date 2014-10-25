@@ -3,13 +3,14 @@ package com.krld.mandelbrot;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Core extends ApplicationAdapter {
     private static final double START_X = -2;
     private static final double START_Y = -1.2;
     private static final double END_X = 3.2;
+    public static final int ITERATION_COUNT = 6;
+    public static final int mDetailLevel = -1;
     SpriteBatch batch;
     private Pixmap pixMap;
 
@@ -23,13 +24,13 @@ public class Core extends ApplicationAdapter {
     private double endX;
     private double endY;
     private double zoomFactor = 2;
+    private double mIteration;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         mWidth = Gdx.graphics.getWidth();
         mHeight = Gdx.graphics.getHeight();
-        initTexture();
 
         startX = START_X;
         startY = START_Y;
@@ -37,45 +38,33 @@ public class Core extends ApplicationAdapter {
         endY = START_Y + ((END_X - START_X) / 16) * 9;
 
         mandelbrot = new MandelbrotCalcer();
-        updateTexture();
-        Gdx.input.setInputProcessor(new MyInputCalcer(this));
+
+        mIteration = ITERATION_COUNT;
+
+        Gdx.input.setInputProcessor(new MyInputProcessor(this));
     }
 
     void updateTexture() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        });
-        thread.start();
-        for (int i = 6; i != 0; i--) {
-            double currentDivider = Math.pow(2, i);
-            int width = (int) (mWidth / currentDivider);
-            int height = (int) (mHeight / currentDivider);
-            Pixmap tmpPixMap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-            mandelbrot.calcPixmap(tmpPixMap, startX, startY, endX, endY);
-            texture = new Texture(tmpPixMap, Pixmap.Format.RGBA8888, false);
-            break;
-        }
-    }
-
-    private void initTexture() {
-       /* pixMap = new Pixmap(mWidth, mHeight, Pixmap.Format.RGBA8888);
-        pixMap.setColor(Color.WHITE);
-        pixMap.fill();
-        pixMap.setColor(Color.RED);
-        pixMap.drawCircle(10, 20, 300);
-        texture = new Texture(pixMap, Pixmap.Format.RGBA8888, false);*/
-
+        mIteration = ITERATION_COUNT;
     }
 
     @Override
     public void render() {
         batch.begin();
-        if (texture != null)
-            batch.draw(texture, 0, 0, mWidth, mHeight);
+        calcTexture();
+        batch.draw(texture, 0, 0, mWidth, mHeight);
         batch.end();
+    }
+
+    private void calcTexture() {
+        if (mIteration == mDetailLevel) return;
+        double currentDivider = Math.pow(2, mIteration);
+        int width = (int) (mWidth / currentDivider);
+        int height = (int) (mHeight / currentDivider);
+        Pixmap tmpPixMap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        mandelbrot.calcPixmap(tmpPixMap, startX, startY, endX, endY);
+        texture = new Texture(tmpPixMap, Pixmap.Format.RGBA8888, false);
+        mIteration--;
     }
 
 
@@ -98,7 +87,6 @@ public class Core extends ApplicationAdapter {
         startY = realY - deltaY / 2;
         endX = startX + deltaX;
         endY = startY + deltaY;
-
         updateTexture();
     }
 

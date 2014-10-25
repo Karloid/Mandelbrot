@@ -14,8 +14,6 @@ public class DesktopLauncher {
         config.width = WIDTH;
         config.height = HEIGHT;
         Core listener = new Core();
-        listener.setmWidth(config.width);
-        listener.setHeight(config.height);
         new LwjglApplication(listener, config);
 	}
 }
