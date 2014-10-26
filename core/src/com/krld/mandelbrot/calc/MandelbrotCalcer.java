@@ -64,15 +64,16 @@ public class MandelbrotCalcer implements Calcer {
             endAngle = 0.99f;
         if (startAngle < 0f)
             startAngle = 0f;
-        String hexColor = getColor(startAngle, endAngle, 0.55f, 0.55f, 0.9f, 0.9f);
+        String hexColor = generateRandomColorHsv(startAngle, endAngle, 0.55f, 0.55f, 0.9f, 0.9f);
         return Color.valueOf(hexColor);
     }
+
 
     private float myLog(float base, float value) {
         return (float) (Math.log(value) / Math.log(base));
     }
 
-    public String getColor(float minHue, float maxHue, float minSaturation, float maxSaturation, float minValue, float maxValue) {
+    public String generateRandomColorHsv(float minHue, float maxHue, float minSaturation, float maxSaturation, float minValue, float maxValue) {
         // hsv[0] is Hue [0 .. 360) hsv[1] is Saturation [0...1] hsv[2] is Value [0...1]
         float[] hsv = new float[3];
         hsv[0] = Utils.getFloat(minHue, maxHue);
@@ -87,7 +88,8 @@ public class MandelbrotCalcer implements Calcer {
                 Color color;
                 int iter = pixArray[x - xOffset][y];
                 if (iter != -1) {
-                    color = getColor(iter);
+                      color = getColor(iter);
+                   // color = getColorAlt(iter);
                 } else {
                     color = Color.BLACK;
                 }
@@ -95,6 +97,32 @@ public class MandelbrotCalcer implements Calcer {
                 mPixMap.drawPixel(x, y);
             }
         }
+    }
+
+    private Color getColorAlt(int iter) {
+        float iterFloat = iter;
+
+        float k = (float) Math.sqrt((iterFloat / myLog(maxIteration, iterFloat)) / maxIteration);
+
+        if (k > 1f) {
+            k = 1f;
+        }
+        float hueAngle = 1f / 360f;
+        hueAngle = hueAngle * 360 * k;
+        float endAngle = hueAngle + 0.01f;
+        float startAngle = hueAngle - 0.01f;
+        if (endAngle > 1f)
+            endAngle = 0.99f;
+        if (startAngle < 0f)
+            startAngle = 0f;
+        String hexColor = generateRandomColorHsv(startAngle, endAngle,
+                0.9f, 0.9f,
+                (float) (Math.sqrt(1f * k)),
+                (float) (Math.sqrt(2f * k)));
+        Color color = null;
+
+        color = Color.valueOf(hexColor);
+        return color;
     }
 
     private class CalcerRunnable implements Runnable {

@@ -37,9 +37,9 @@ public class Utils {
     }
 
     public static String rgbToString(float r, float g, float b) {
-        String rs = Integer.toHexString((int)(r * 256));
-        String gs = Integer.toHexString((int)(g * 256));
-        String bs = Integer.toHexString((int)(b * 256));
+        String rs = Integer.toHexString(0x100 | (int)(r * 256)).substring(1);
+        String gs = Integer.toHexString(0x100 | (int)(g * 256)).substring(1);
+        String bs = Integer.toHexString(0x100 | (int)(b * 256)).substring(1);
         return rs + gs + bs;
     }
 }
