@@ -2,6 +2,9 @@ package com.krld.mandelbrot;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+
+import static com.badlogic.gdx.Input.Keys.*;
+
 import com.badlogic.gdx.InputProcessor;
 
 /**
@@ -16,12 +19,27 @@ public class MyInputProcessor implements com.badlogic.gdx.InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.PLUS) {
+        if (keycode == PLUS) {
             core.detailUp();
         }
-        if (keycode == Input.Keys.MINUS) {
+        if (keycode == MINUS) {
             core.detailDown();
         }
+        switch (keycode) {
+            case UP:
+                core.moveCamera(Directions.UP);
+                break;
+            case DOWN:
+                core.moveCamera(Directions.DOWN);
+                break;
+            case LEFT:
+                core.moveCamera(Directions.LEFT);
+                break;
+            case RIGHT:
+                core.moveCamera(Directions.RIGHT);
+                break;
+        }
+
         return false;
     }
 
@@ -39,22 +57,24 @@ public class MyInputProcessor implements com.badlogic.gdx.InputProcessor {
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         core.zoom(screenX, Gdx.graphics.getHeight() - screenY, button == Input.Buttons.LEFT);
-        core.updateTexture();
         return false;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        core.cancelZoom();
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+
         return false;
     }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
+        core.zoom(screenX, Gdx.graphics.getHeight() - screenY);
         return false;
     }
 

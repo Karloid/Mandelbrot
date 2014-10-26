@@ -1,4 +1,4 @@
-package com.krld.mandelbrot;
+package com.krld.mandelbrot.calc;
 
 import com.badlogic.gdx.graphics.Pixmap;
 
